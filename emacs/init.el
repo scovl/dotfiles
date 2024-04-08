@@ -1,189 +1,275 @@
-;; Stops startup message
-(setq inhibit-startup-message t)
+;;; Code
 
-(tool-bar-mode -1)
-(menu-bar-mode -1)
-(scroll-bar-mode -1)
-(tooltip-mode -1)
+(defvar dotfiles-dir (expand-file-name "~/.emacs.d"))
 
-;; bell
-(setq visible-bell t)
 
-;; linhas
+(defun lobo-require-packages (packages)
+  (dolist (package packages)
+    (when (not (package-installed-p package))
+      (package-install package))))
+
+
+
+(defun lobo-recentf-ido-find-file ()
+  "Find a recent file using ido."
+  (interactive)
+  (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
+    (when file
+      (find-file file))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Key Bindings
+
+(global-set-key (kbd "C-x f") 'lobo-recentf-ido-find-file)
+
+;; Exiting
+;; The mnemonic is C-x REALLY QUIT
+(global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
+;(global-set-key (kbd "C-x C-c") 'delete-frame)
+
+;; Window Navigation
+(global-set-key (kbd "M-o") 'other-window)
+
+;; Window splitting
+(global-set-key (kbd "M-0") 'delete-window)
+(global-set-key (kbd "M-1") 'delete-other-windows)
+(global-set-key (kbd "M-2") 'split-window-vertically)
+(global-set-key (kbd "M-3") 'split-window-horizontally)
+(global-set-key (kbd "M-=") 'balance-windows)
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Global modes
+
+
+(require 'ansi-color)
+(require 'recentf)
+(require 'ffap)
+(require 'uniquify)
+
+(auto-compression-mode t)
+(auto-fill-mode 1)
+(delete-selection-mode 1)
+(global-font-lock-mode t)
+;(global-whitespace-mode 1)
+
+;; Line Numbers
 (global-display-line-numbers-mode t)
 
-;; auto brackets
-(use-package flex-autopair
-  :ensure t)
+;; Navigate sillycased words
+(global-subword-mode 1)
 
-;; theme
-(setq custom-safe-themes t)
-(use-package rebecca-theme
-  :ensure t
-  :config (load-theme 'rebecca))
+(ido-mode t)
+(recentf-mode 1)
+(show-paren-mode 1)
 
-;; font
-(set-face-attribute 'default nil
-                    :family "Fira Code Retina"
-                    :weight 'bold
-                    :height 120)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Custom Settings
 
-;; Pacotes
+
+(column-number-mode t)
+;(custom-file (concat user-emacs-directory "custom.el"))
+
+(indent-tabs-mode nil)
+
+;; When on a tab, make the cursor the tab length…
+(setq-default x-stretch-cursor t)
+
+;; But never insert tabs…
+(set-default 'indent-tabs-mode nil)
+
+;; Except in Makefiles.
+(add-hook 'makefile-mode-hook 'indent-tabs-mode)
+
+;; Keep files clean.
+(setq-default require-final-newline t)
+(setq-default show-trailing-whitespace t)
+(add-hook 'before-save-hook 'whitespace-cleanup)
+
+;; Don't write lock-files
+(setq create-lockfiles nil)
+
+;; Fix empty clipboard error
+(setq save-interprogram-paste-before-kill nil)
+
+;; Remove text in active region if inserting text
+(delete-selection-mode 1)
+
+;; Don't automatically copy selected text
+(setq select-enable-primary nil)
+
+;; Auto-close brackets and double quotes
+(electric-pair-mode 1)
+
+;; Don't automatically indent lines
+(electric-indent-mode 1)
+
+;; Always display line and column numbers
+(setq line-number-mode t)
+(setq column-number-mode t)
+
+;; Word wrap (t is no wrap, nil is wrap)
+(setq-default truncate-lines nil)
+
+;; Don't use shift to mark things.
+;(setq shift-select-mode nil)
+
+;; Allow clipboard from outside emacs
+(setq select-enable-clipboard t
+      save-interprogram-paste-before-kill t
+      apropos-do-all t
+      mouse-yank-at-point t)
+
+;; Improve performance of very long lines
+(setq-default bidi-display-reordering 'left-to-right)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Mode-line
+
+;; Remove all minor modes (mode-line-modes)
+(setq-default mode-line-format
+      '("%e"
+        mode-line-front-space
+        mode-line-mule-info
+        mode-line-client
+        mode-line-modified
+        mode-line-remote
+        mode-line-frame-identification
+        mode-line-buffer-identification
+        "    "
+        mode-line-position
+        (vc-mode vc-mode)
+        " (" mode-name ") "
+        mode-line-misc-info
+        mode-line-end-spaces))
+
+;; Add Date
+(setq display-time-day-and-date t
+      display-time-format "%a %b %d %R"
+      display-time-interval 60
+      display-time-default-load-average nil)
+(display-time)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UI
+
+;; inhibit emacs initial messages
+(setq inhibit-startup-screen t)
+(setq initial-scratch-message nil)
+
+;; No alarms.
+(setq ring-bell-function 'ignore)
+
+;; Productive default mode.
+;(setq initial-major-mode 'org-mode)
+
+;; Change cursor.
+(setq-default cursor-type 'box)
+(blink-cursor-mode -1)
+
+(defalias 'yes-or-no-p 'y-or-n-p)
+(if (fboundp 'tool-bar-mode) (tool-bar-mode -1))
+(if (fboundp 'scroll-bar-mode) (scroll-bar-mode -1))
+(if (fboundp 'tooltip-mode) (tooltip-mode -1))
+(if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
+(if (fboundp 'x-cut-buffer-or-selection-value)
+    (setq x-select-enable-clipboard t
+          interprogram-paste-function 'x-cut-buffer-or-selection-value))
+(condition-case exc
+    (progn
+      (add-to-list 'custom-theme-load-path
+                   (concat user-emacs-directory "themes"))
+      (if window-system
+          (progn
+            (mouse-wheel-mode t)
+            (blink-cursor-mode 1)
+            (add-to-list 'default-frame-alist '(height . 40))
+            (add-to-list 'default-frame-alist '(width . 100))
+            ;; fonts
+            (let ((myfont "Inconsolata-14"))
+              (set-frame-font myfont)
+              (add-to-list 'default-frame-alist (cons 'font myfont)))
+            ;; themes
+            (load-theme 'tango-dark t))
+        (if (string= (getenv "TERM") "xterm-256color")
+            (load-theme 'rebecca t)
+          (load-theme 'tango dark t))))
+  ('error
+   (warn (format "Caught exception: [%s]" exc))))
+(delete 'try-expand-line hippie-expand-try-functions-list)
+(delete 'try-expand-list hippie-expand-try-functions-list)
+(add-to-list 'completion-ignored-extensions ".d")  ;; "cc -MD" depends files
+(add-to-list 'completion-ignored-extensions ".test")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Initialization
+
+(random t)
+;(add-to-list 'load-path (concat dotfiles-dir "lisp"))
+(setq locale-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+(set-selection-coding-system 'utf-8)
+(prefer-coding-system 'utf-8)
+
+(setq-default
+ c-basic-offset 2
+ c-file-style nil
+ coffee-tab-width 2
+ css-indent-offset 2
+ fill-column 80
+ save-place t
+ tab-width 2
+ truncate-lines t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Package Management
+
 (require 'package)
-(setq package-enable-at-startup nil)
+(package-initialize)
 
-;; MELPA
 (add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/")) 
+             '("melpa" . "https://melpa.org/packages/") t)
 
-(package-initialize) ; iniciar pacotes
-
-(unless (package-installed-p 'use-package)
+;; Ensure use-package is installed
+(when (not (package-installed-p 'use-package))
   (package-refresh-contents)
   (package-install 'use-package))
 
-;; autocomplete
-(use-package auto-complete
-  :ensure t
-  :init
-  (progn
-    (ac-config-default)
-    (global-auto-complete-mode t)))
+(eval-when-compile
+  (require 'use-package))
 
-;; neotree
-(use-package neotree
-  :ensure t
-  :config (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
-  :bind (("C-\\" . 'neotree-toggle)))
+;; Rgrep
 
-;; all-the-icons
-(use-package all-the-icons
-  :ensure t)
-
-
-;; Golang
-(use-package go-mode
-  :ensure t)
-
-;; Go-complete
-(use-package go-complete
-  :ensure t)
-
-(use-package lsp-mode
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq lsp-keymap-prefix "C-c l")
-  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-         (go-mode . lsp)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
-
-(use-package lsp-ui
-  :ensure t)
-
-;; Company mode
-(setq company-idle-delay 0)
-(setq company-minimum-prefix-length 1)
-
-;; Go - lsp-mode
-;; Set up before-save hooks to format buffer and add/delete imports.
-(defun lsp-go-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
-
-;; Start LSP Mode and YASnippet mode
-(add-hook 'go-mode-hook #'lsp-deferred)
-(add-hook 'go-mode-hook #'yas-minor-mode)
-
-;; MARKDOWN
-(use-package markdown-mode
-  :ensure t
-  :mode ("README\\.md\\'" . gfm-mode)
-  :init (setq markdown-command "multimarkdown"))
-
-(use-package undo-tree
-  :ensure t
-  :init
-  (global-undo-tree-mode 1))
-
-(use-package xclip
+(use-package rg
   :ensure t
   :config
-  (xclip-mode 1))
+  (rg-define-search my/rg-project
+    "Search for any files in project or current directory"
+    :query ask
+    :format literal
+    :confirm prefix
+    :files "everything"
+    :flags ("--hidden -g !.git")
+    :Dir (if (vc-root-dir)
+             (vc-root-dir)
+           default-directory))
+  :bind
+  ("C-S-s" . my/rg-project))
 
-;; meus atalhos
-(global-set-key (kbd "C-s") 'save-buffer)
-(global-set-key (kbd "C-c c") 'kill-ring-save)
-(global-set-key (kbd "C-v") 'yank)
-(global-set-key (kbd "C-z") 'undo)
-(global-set-key (kbd "C-f") 'isearch-forward)
-(global-set-key (kbd "C-w") 'kill-region)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; tab
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(setq-default tab-width 4)
-(setq-default indent-tabs-mode nil)
-(global-set-key (kbd "TAB") 'tab-to-tab-stop)
 
-(defun indent-region-custom(numSpaces)
-  (progn
-    ;; Se o texto está selecionado, indentar esse texto
-    (if (use-region-p)
-        (let ((mark (mark)))
-          (save-excursion
-            (indent-rigidly (region-beginning) (region-end) numSpaces)
-            (push-mark mark t t)
-            (setq deactivate-mark nil)))
-      ;; Senão, apenas inserir um tab
-      (insert-tab))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; CUSTOM LANGS
 
-(defun my-indent-or-complete ()
-  (interactive)
-  (if (looking-at "\\_>")
-      (company-complete-common)
-    (indent-region-custom 4)))
+;; load custom langs *.el files
+(dolist (file (directory-files (expand-file-name "custom" user-emacs-directory) t "\\.el$"))
+  (load file))
 
-(global-set-key (kbd "TAB") 'my-indent-or-complete)
-
-(defun unindent-region-custom(numSpaces)
-  "Reduz a indentação de uma região selecionada por um número específico de espaços."
-  (progn
-    ;; Verifica se há texto selecionado
-    (if (use-region-p)
-        (let ((mark (mark)))
-          (save-excursion
-            ;; Reduz a indentação da região selecionada
-            (indent-rigidly (region-beginning) (region-end) (- numSpaces))
-            (push-mark mark t t)
-            ;; Mantém a seleção após a indentação
-            (setq deactivate-mark nil)))
-      ;; Se não houver seleção, não faz nada
-      )))
-
-(defun my-unindent-or-nothing ()
-  "Chama a função de desindentar se houver uma região selecionada, caso contrário, não faz nada."
-  (interactive)
-  (unindent-region-custom 4))
-
-;; Mapeia Shift + Tab para a função de reduzir indentação
-(global-set-key (kbd "<backtab>") 'my-unindent-or-nothing)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Se estiver usando 'undo-tree', pode usar:
-(global-set-key (kbd "C-y") 'undo-tree-redo)
-
-;; ivy
-(ivy-mode 1)
-(setq ivy-use-virtual-buffers t)
-(setq ivy-count-format "(%d/%d) ")
-(global-set-key (kbd "C-x C-f") 'counsel-find-file)
-(global-set-key (kbd "C-f") 'swiper-isearch)
-(global-set-key (kbd "M-x") 'counsel-M-x)
-(global-set-key (kbd "C-x b") 'ivy-switch-buffer)
 
 
 (custom-set-variables
@@ -191,10 +277,8 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("9724b3abaf500b227faa036dcf817abed9764802835ba6e8d1e475c877205157" default))
  '(package-selected-packages
-   '(magit counsel helm flex-autopair eletric-pair-mode lsp-ui molokai-theme all-the-icons neotree auto-complete which-key try lsp-mode go-mode go flycheck company))
+   '(dap-mode go-add-tags go-fill-struct lsp-ui lsp-mode web-mode rg rainbow-mode paredit markdown-mode magit htmlize go-mode flymake-shellcheck expand-region emmet-mode))
  '(warning-suppress-types '((use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
