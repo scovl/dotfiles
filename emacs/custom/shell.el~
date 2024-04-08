@@ -1,0 +1,46 @@
+;; Garantir que o use-package esteja disponível
+(require 'use-package)
+
+;; Configuração básica para shell scripting
+(use-package sh-script
+  :ensure nil ;; sh-script é parte do Emacs, não precisa ser instalado
+  :config
+  (add-hook 'sh-mode-hook 'flycheck-mode) ;; Ativar flycheck para shell scripts
+  (setq sh-basic-offset 2) ;; Define a indentação básica para 2 espaços
+  (setq sh-indentation 2)) ;; Define a indentação para estruturas de controle
+
+;; Configuração para o Shellcheck, um linter para shell scripts
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode t)
+  :config
+  ;; Certifique-se de que o shellcheck esteja instalado em seu sistema para que isso funcione
+  (setq flycheck-sh-shellcheck-executable "/usr/bin/shellcheck"))
+
+;; Melhorando a auto-completação com company-mode
+(use-package company
+  :ensure t
+  :config
+  (add-hook 'sh-mode-hook 'company-mode)
+  (setq company-minimum-prefix-length 1
+        company-idle-delay 0.0)) ;; Mostra sugestões imediatamente
+
+;; Opcional: Configuração do lsp-mode para Bash, se você estiver utilizando um LSP como o bash-language-server
+(use-package lsp-mode
+  :ensure t
+  :commands (lsp lsp-deferred)
+  :hook ((sh-mode . lsp-deferred))
+  :config
+  (setq lsp-enable-file-watchers nil)
+  (setq lsp-bash-explainshell-endpoint "https://explainshell.com"))
+
+;; Configuração para melhorar a experiência de edição e navegação
+(use-package yasnippet
+  :ensure t
+  :config
+  (yas-reload-all)
+  (add-hook 'sh-mode-hook 'yas-minor-mode))
+
+;; Adicionando suporte a snippets específicos para shell scripting
+(use-package yasnippet-snippets
+  :ensure t)
