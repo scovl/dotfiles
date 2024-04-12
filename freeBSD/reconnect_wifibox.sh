@@ -13,7 +13,7 @@ check_connectivity() {
 
 # Function to reconnect
 reconnect() {
-    echo "Connection lost detected. Trying to reconnect..."
+  echo "Connection lost detected. Trying to reconnect..."
     # Unassociate the Wi-Fi interface
     ifconfig "$NETWORK_INTERFACE" -nwid
     # Request a new DHCP connection
