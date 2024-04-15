@@ -28,38 +28,32 @@
 (global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
 ;(global-set-key (kbd "C-x C-c") 'delete-frame)
 
-;; Window Navigation
-(global-set-key (kbd "M-o") 'other-window)
 
 ;; Personal key bindings config
 
-;; save files
+;; Save files
 (global-set-key (kbd "C-s") 'save-buffer)
 
-;; Search words
-(global-set-key (kbd "C-f") 'isearch-complete)
+;; Ctrl + a para selecionar tudo
+(global-set-key (kbd "C-a") 'mark-whole-buffer)
 
-;; Replace words
-(global-set-key (kbd "C-h") 'query-replace)
-
-;; Undo
-(global-set-key (kbd "C-z") 'undo)
-
-;; Redo
-(global-set-key (kbd "C-S-z") 'undo-redo)
-
-;; Copy
-(define-key input-decode-map (kbd "C-c-c") (kbd "M-w"))
+;; search
+(global-set-key (kbd "C-f") 'isearch-forward)
 
 ;; Paste
-(global-set-key "C-v" 'yank)
+(global-set-key (kbd "C-v") 'yank)
 
 ;; Cut
-(global-set-key "C-x"' kill-region)
+(global-set-key (kbd "C-S-x") 'kill-region)
 
-;; Open my shell
+;; Replace
+(global-set-key (kbd "C-r") 'query-replace)
 
+;; undo
+(global-set-key (kbd "C-z") 'undo)
 
+;; redo
+(global-set-key (kbd "C-S-z") 'undo-redo)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Global modes
@@ -211,7 +205,7 @@
             (add-to-list 'default-frame-alist '(height . 40))
             (add-to-list 'default-frame-alist '(width . 100))
             ;; fonts
-            (let ((myfont "Inconsolata-14"))
+            (let ((myfont "Inconsolata-16:weight=bold"))
               (set-frame-font myfont)
               (add-to-list 'default-frame-alist (cons 'font myfont)))
             ;; themes
