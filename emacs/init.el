@@ -5,8 +5,8 @@
 
 (defun lobo-require-packages (packages)
   (dolist (package packages)
-    (when (not (package-installed-p package))
-      (package-install package))))
+  (when (not (package-installed-p package))
+    (package-install package))))
 
 
 
@@ -14,8 +14,8 @@
   "Find a recent file using ido."
   (interactive)
   (let ((file (ido-completing-read "Choose recent file: " recentf-list nil t)))
-    (when file
-      (find-file file))))
+  (when file
+    (find-file file))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -27,7 +27,6 @@
 ;; The mnemonic is C-x REALLY QUIT
 (global-set-key (kbd "C-x r q") 'save-buffers-kill-terminal)
 ;(global-set-key (kbd "C-x C-c") 'delete-frame)
-
 
 ;; Personal key bindings config
 
@@ -83,7 +82,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Custom Settings
 
-
 (column-number-mode t)
 ;(custom-file (concat user-emacs-directory "custom.el"))
 
@@ -133,9 +131,9 @@
 
 ;; Allow clipboard from outside emacs
 (setq select-enable-clipboard t
-      save-interprogram-paste-before-kill t
-      apropos-do-all t
-      mouse-yank-at-point t)
+    save-interprogram-paste-before-kill t
+    apropos-do-all t
+    mouse-yank-at-point t)
 
 ;; Improve performance of very long lines
 (setq-default bidi-display-reordering 'left-to-right)
@@ -146,26 +144,26 @@
 
 ;; Remove all minor modes (mode-line-modes)
 (setq-default mode-line-format
-      '("%e"
-        mode-line-front-space
-        mode-line-mule-info
-        mode-line-client
-        mode-line-modified
-        mode-line-remote
-        mode-line-frame-identification
-        mode-line-buffer-identification
-        "    "
-        mode-line-position
-        (vc-mode vc-mode)
-        " (" mode-name ") "
-        mode-line-misc-info
-        mode-line-end-spaces))
+    '("%e"
+    mode-line-front-space
+    mode-line-mule-info
+    mode-line-client
+    mode-line-modified
+    mode-line-remote
+    mode-line-frame-identification
+    mode-line-buffer-identification
+    "    "
+    mode-line-position
+    (vc-mode vc-mode)
+    " (" mode-name ") "
+    mode-line-misc-info
+    mode-line-end-spaces))
 
 ;; Add Date
 (setq display-time-day-and-date t
-      display-time-format "%a %b %d %R"
-      display-time-interval 60
-      display-time-default-load-average nil)
+    display-time-format "%a %b %d %R"
+    display-time-interval 60
+    display-time-default-load-average nil)
 (display-time)
 
 
@@ -192,27 +190,27 @@
 (if (fboundp 'tooltip-mode) (tooltip-mode -1))
 (if (fboundp 'menu-bar-mode) (menu-bar-mode -1))
 (if (fboundp 'x-cut-buffer-or-selection-value)
-    (setq x-select-enable-clipboard t
-          interprogram-paste-function 'x-cut-buffer-or-selection-value))
+  (setq x-select-enable-clipboard t
+      interprogram-paste-function 'x-cut-buffer-or-selection-value))
 (condition-case exc
-    (progn
-      (add-to-list 'custom-theme-load-path
-                   (concat user-emacs-directory "themes"))
-      (if window-system
-          (progn
-            (mouse-wheel-mode t)
-            (blink-cursor-mode 1)
-            (add-to-list 'default-frame-alist '(height . 40))
-            (add-to-list 'default-frame-alist '(width . 100))
-            ;; fonts
-            (let ((myfont "Inconsolata-16:weight=bold"))
-              (set-frame-font myfont)
-              (add-to-list 'default-frame-alist (cons 'font myfont)))
-            ;; themes
-            (load-theme 'tango-dark t))
-        (if (string= (getenv "TERM") "xterm-256color")
-            (load-theme 'rebecca t)
-          (load-theme 'tango dark t))))
+  (progn
+    (add-to-list 'custom-theme-load-path
+           (concat user-emacs-directory "themes"))
+    (if window-system
+      (progn
+      (mouse-wheel-mode t)
+      (blink-cursor-mode 1)
+      (add-to-list 'default-frame-alist '(height . 40))
+      (add-to-list 'default-frame-alist '(width . 100))
+      ;; fonts
+      (let ((myfont "Inconsolata-16:weight=bold"))
+        (set-frame-font myfont)
+        (add-to-list 'default-frame-alist (cons 'font myfont)))
+      ;; themes
+      (load-theme 'gruvbox-dark-hard t))
+    (if (string= (getenv "TERM") "xterm-256color")
+      (load-theme 'gruvbox-dark-hard t)
+      (load-theme 'tango dark t))))
   ('error
    (warn (format "Caught exception: [%s]" exc))))
 (delete 'try-expand-line hippie-expand-try-functions-list)
@@ -248,7 +246,7 @@
 (package-initialize)
 
 (add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
+       '("melpa" . "https://melpa.org/packages/") t)
 
 ;; Ensure use-package is installed
 (when (not (package-installed-p 'use-package))
@@ -264,15 +262,15 @@
   :ensure t
   :config
   (rg-define-search my/rg-project
-    "Search for any files in project or current directory"
-    :query ask
-    :format literal
-    :confirm prefix
-    :files "everything"
-    :flags ("--hidden -g !.git")
-    :Dir (if (vc-root-dir)
-             (vc-root-dir)
-           default-directory))
+  "Search for any files in project or current directory"
+  :query ask
+  :format literal
+  :confirm prefix
+  :files "everything"
+  :flags ("--hidden -g !.git")
+  :Dir (if (vc-root-dir)
+       (vc-root-dir)
+       default-directory))
   :bind
   ("C-S-h" . my/rg-project))
 
@@ -292,8 +290,11 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes '(gruvbox-dark-hard))
+ '(custom-safe-themes
+   '("a5270d86fac30303c5910be7403467662d7601b821af2ff0c4eb181153ebfc0a" "d445c7b530713eac282ecdeea07a8fa59692c83045bf84dd112dd738c7bcad1d" "7422e5b955cf72a2657e0b932ce00efcaee3cffd663f5d701d2442a74ab17dbf" default))
  '(package-selected-packages
-   '(dap-mode go-add-tags go-fill-struct lsp-ui lsp-mode web-mode rg rainbow-mode paredit markdown-mode magit htmlize go-mode flymake-shellcheck expand-region emmet-mode))
+   '(gruvbox-theme dap-mode go-add-tags go-fill-struct lsp-ui lsp-mode web-mode rg rainbow-mode paredit markdown-mode magit htmlize go-mode flymake-shellcheck expand-region emmet-mode))
  '(warning-suppress-types '((use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
