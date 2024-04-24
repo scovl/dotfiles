@@ -1,62 +1,99 @@
-;; Ensure that use-package is available
-(require 'use-package)
-
 ;; lsp-mode configuration
 (use-package lsp-mode
   :ensure t
-  :hook (c-mode . lsp-deferred)
-  :commands (lsp lsp-deferred)
-  :init
-  (setq lsp-prefer-flymake nil) ; Prefer lsp-ui (flycheck) over flymake unless specified
-  (setq lsp-clients-clangd-args '("--header-insertion=never")))
+  :hook ((c-mode . lsp)
+         (c++-mode . lsp)
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp
+  :config
+  (setq lsp-prefer-flymake nil)
+  (setq lsp-enable-on-type-formatting nil)
+  (setq lsp-keymap-prefix "C-c l")
+  (define-key lsp-mode-map (kbd "C-c l") lsp-command-map)
+  (setq lsp-file-watch-threshold 15000))
 
-;; Optional: lsp-ui configuration for an enhanced UI experience with lsp-mode
 (use-package lsp-ui
   :ensure t
-  :commands lsp-ui-mode
+  :commands (lsp-ui-mode)
   :config
-  (setq lsp-ui-doc-enable t
-        lsp-ui-doc-position 'top
-        lsp-ui-doc-include-signature t
-        lsp-ui-sideline-enable nil
-        lsp-ui-sideline-show-hover nil
-        lsp-ui-sideline-show-code-actions t))
+  (setq lsp-ui-doc-enable nil)
+  (setq lsp-ui-doc-delay 0.5)
+  (define-key lsp-ui-mode-map [remap xref-find-definitions] #'lsp-ui-peek-find-definitions)
+  (define-key lsp-ui-mode-map [remap xref-find-references] #'lsp-ui-peek-find-references))
 
-;; Optional: Company configuration for autocompletion
-(use-package company
+(use-package lsp-ivy
   :ensure t
-  :config
-  (global-company-mode)
-  (setq company-minimum-prefix-length 1
-        company-idle-delay 0.0)) ;; Show suggestions immediately
+  :commands lsp-ivy-workspace-symbol)
 
-;; Optional: lsp-mode integration with treemacs for project tree visualization
 (use-package lsp-treemacs
   :ensure t
-  :after lsp)
+  :commands lsp-treemacs-errors-list)
 
-;; Additional configuration to enhance the experience with C/C++
-(add-hook 'c-mode-hook (lambda ()
-                         (setq c-basic-offset 4) ;; Set indentation to 4 spaces
-                         (setq-default tab-width 4) ;; Set tab width to 4 spaces
-                         (setq-default c-default-style "linux") ;; Coding style
-                         (electric-pair-mode 1))) ;; Auto-close parentheses and quotes
+;; company
+(use-package company
+  :ensure t
+  :bind ("M-/" . company-complete-common-or-cycle) ;; overwritten by flyspell
+  :init (add-hook 'after-init-hook 'global-company-mode)
+  :config
+  (setq company-show-numbers            t
+  company-minimum-prefix-length   1
+  company-idle-delay              0.5
+  company-backends
+  '((company-files          ; files & directory
+     company-keywords       ; keywords
+     company-capf           ; what is this?
+     company-yasnippet)
+    (company-abbrev company-dabbrev))))
 
-;; Ensure lsp-mode starts automatically for C
-(add-hook 'c-mode-hook #'lsp-deferred)
+(use-package company-box
+  :ensure t
+  :after company
+  :hook (company-mode . company-box-mode))
 
-(defun my-compile ()
-  "Custom function to compile C projects.
-   Change the compilation command as needed."
+;; flycheck
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode)
+  :config
+  (setq flycheck-display-errors-function
+  #'flycheck-display-error-messages-unless-error-list)
+
+  (setq flycheck-indication-mode nil))
+
+(use-package flycheck-pos-tip
+  :ensure t
+  :after flycheck
+  :config
+  (flycheck-pos-tip-mode))
+
+(use-package ccls
+  :ensure t
+  :config
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp)))
+  (setq ccls-executable "/usr/local/bin/ccls")
+  (setq ccls-args nil)
+  (setq ccls-initialization-options
+  '(:index (:comments 2) :completion (:detailedLabel t))))
+
+(defun generate-ccls-config ()
+  "Generate .ccls file in root project"
   (interactive)
-  ;; Example using make
-  ;; Ensure your project has a Makefile
-  (compile "make -k")
-  ;; If you want to compile a single file with gcc or clang directly, you can replace the above line with
-  ;; (compile "gcc -o program file.c")
-  ;; or for clang
-  ;; (compile "clang -o program file.c")
-)
+  (let ((root (locate-dominating-file (buffer-file-name) "src"))  ; Detecta a raiz do projeto baseado na existência de um diretório 'src'
+        (ccls-content '("%clang"
+                        "%c -std=gnu11"
+                        "%cpp -std=gnu++14")))
+    (when root
+      (with-temp-buffer
+        ;; Add the 'include' directory if it exists
+        (when (file-exists-p (concat root "include"))
+          (setq ccls-content (append ccls-content '("-Iinclude"))))
+
+        ;; Write the settings in the buffer and save them to the .ccls file
+        (dolist (line ccls-content)
+          (insert line "\n"))
+        (write-file (concat root ".ccls"))
+        (message "Arquivo .ccls gerado em: %s" root)))))
 
 ;; Configuring keybindings
 (defun setup-c-mode-compile-keybindings ()
