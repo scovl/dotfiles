@@ -76,30 +76,39 @@
   (setq ccls-initialization-options
   '(:index (:comments 2) :completion (:detailedLabel t))))
 
-(defun generate-ccls-config ()
-  "Generate .ccls file in root project"
-  (interactive)
-  (let ((root (locate-dominating-file (buffer-file-name) "src"))  ; Detecta a raiz do projeto baseado na existência de um diretório 'src'
-        (ccls-content '("%clang"
-                        "%c -std=gnu11"
-                        "%cpp -std=gnu++14")))
-    (when root
-      (with-temp-buffer
-        ;; Add the 'include' directory if it exists
-        (when (file-exists-p (concat root "include"))
-          (setq ccls-content (append ccls-content '("-Iinclude"))))
+(defun create-c-project (project-name)
+  "Create a new C project structure and generate a .ccls file in the project root."
+  (interactive "sEnter the project name: ")
+  (let ((root (concat (read-directory-name "Select the root directory: ") project-name "/")))
+    (make-directory root t) ; Create the root directory of the project
+    ;; Create the necessary subdirectories
+    (dolist (dir '("src" "build" "include" "data" "libs" "tools" "docs" "tests"))
+      (make-directory (concat root dir) t))
 
-        ;; Write the settings in the buffer and save them to the .ccls file
+    ;; Generate the content for the .ccls file
+    (let ((ccls-content '("%clang"
+                          "%c -std=gnu11"
+                          "%cpp -std=gnu++14"
+                          "-Iinclude")))
+      (with-temp-buffer
+        ;; Write the settings into the buffer and save them to the .ccls file
         (dolist (line ccls-content)
           (insert line "\n"))
-        (write-file (concat root ".ccls"))
-        (message "Arquivo .ccls gerado em: %s" root)))))
+        (write-file (concat root ".ccls")))
+      (message "Project %s created in %s" project-name root))))
 
-;; Configuring keybindings
-(defun setup-c-mode-compile-keybindings ()
-  "Configure keybindings for compilation in C mode."
-  (local-set-key (kbd "C-c c") 'my-compile) ;; Compiles the project or file
-)
+;; build system
+(defun cc ()
+  "Set up gmake as the compile command for the current buffer."
+  (interactive)
+  (set (make-local-variable 'compile-command)
+       (concat "gmake "  ; Directly using 'gmake'
+               (if buffer-file-name
+                   (shell-quote-argument
+                    (file-name-sans-extension buffer-file-name))
+                 "all")))  ; Default to 'gmake all' if no buffer file name is available
+
+
 
 ;; Apply the keybindings when entering c-mode
 (add-hook 'c-mode-hook 'setup-c-mode-compile-keybindings)
