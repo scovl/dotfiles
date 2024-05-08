@@ -15,6 +15,18 @@
     (when file
         (find-file file))))
 
+
+(defun custom-isearch-toggle ()
+  "Toggle between isearch-forward and isearch-backward."
+  (interactive)
+  (if (eq isearch-forward t)
+      (progn
+        (isearch-exit)
+        (isearch-backward))
+    (progn
+      (isearch-exit)
+      (isearch-forward))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Key Bindings
 
@@ -34,7 +46,7 @@
 (global-set-key (kbd "C-a") 'mark-whole-buffer)
 
 ;; search
-(global-set-key (kbd "C-f") 'isearch-forward)
+(global-set-key (kbd "C-f") 'custom-isearch-toggle)
 
 ;; Paste
 (global-set-key (kbd "C-v") 'yank)
