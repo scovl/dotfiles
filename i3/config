@@ -188,3 +188,6 @@ bindsym $mod+r mode "resize"
 bar {
         status_command i3status
 }
+
+# open emacs
+bindsym $mod+Shift+t exec "emacs"
